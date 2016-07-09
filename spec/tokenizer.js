@@ -35,7 +35,9 @@ describe('Tokenizer', function() {
   it('tokenizes a simple mustache as "OPEN ID CLOSE"', function() {
     var result = tokenize('{{foo}}');
     shouldMatchTokens(result, ['OPEN', 'ID', 'CLOSE']);
+    shouldBeToken(result[0], 'OPEN', '{{');
     shouldBeToken(result[1], 'ID', 'foo');
+    shouldBeToken(result[2], 'CLOSE', '}}');
   });
 
   it('supports unescaping with &', function() {
@@ -127,6 +129,9 @@ describe('Tokenizer', function() {
   it('tokenizes a simple path', function() {
     var result = tokenize('{{foo/bar}}');
     shouldMatchTokens(result, ['OPEN', 'ID', 'SEP', 'ID', 'CLOSE']);
+    shouldBeToken(result[1], 'ID', 'foo');
+    shouldBeToken(result[2], 'SEP', '/');
+    shouldBeToken(result[3], 'ID', 'bar');
   });
 
   it('allows dot notation', function() {
@@ -139,6 +144,9 @@ describe('Tokenizer', function() {
   it('allows path literals with []', function() {
     var result = tokenize('{{foo.[bar]}}');
     shouldMatchTokens(result, ['OPEN', 'ID', 'SEP', 'ID', 'CLOSE']);
+    shouldBeToken(result[1], 'ID', 'foo');
+    shouldBeToken(result[2], 'SEP', '.');
+    shouldBeToken(result[3], 'ID', '[bar]');
   });
 
   it('allows multiple path literals on a line with []', function() {
@@ -149,11 +157,16 @@ describe('Tokenizer', function() {
   it('allows escaped literals in []', function() {
     var result = tokenize('{{foo.[bar\\]]}}');
     shouldMatchTokens(result, ['OPEN', 'ID', 'SEP', 'ID', 'CLOSE']);
+    shouldBeToken(result[3], 'ID', '[bar]]');
   });
 
   it('tokenizes {{.}} as OPEN ID CLOSE', function() {
     var result = tokenize('{{.}}');
     shouldMatchTokens(result, ['OPEN', 'ID', 'CLOSE']);
+
+    result = tokenize('{{ . }}');
+    shouldMatchTokens(result, ['OPEN', 'ID', 'CLOSE']);
+    shouldBeToken(result[1], 'ID', '.');
   });
 
   it('tokenizes a path as "OPEN (ID SEP)* ID CLOSE"', function() {
@@ -197,6 +210,7 @@ describe('Tokenizer', function() {
   it('tokenizes a partial as "OPEN_PARTIAL ID CLOSE"', function() {
     var result = tokenize('{{> foo}}');
     shouldMatchTokens(result, ['OPEN_PARTIAL', 'ID', 'CLOSE']);
+    shouldBeToken(result[0], 'OPEN_PARTIAL', '{{>');
   });
 
   it('tokenizes a partial with context as "OPEN_PARTIAL ID ID CLOSE"', function() {
@@ -256,7 +270,7 @@ describe('Tokenizer', function() {
   });
 
   it('tokenizes inverse sections as "INVERSE"', function() {
-    shouldMatchTokens(tokenize('{{^}}'), ['INVERSE']);
+    shouldMatchTokens(tokenize('{{^  }}'), ['INVERSE']);
     shouldMatchTokens(tokenize('{{else}}'), ['INVERSE']);
     shouldMatchTokens(tokenize('{{ else }}'), ['INVERSE']);
   });
